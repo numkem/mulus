@@ -1,0 +1,9 @@
+body{margin-top:80px}
+#chatLogs {
+    height: 500px;
+}
+#message {
+    border-style: solid;
+    border-width: 1px;
+    width: 90%;
+}

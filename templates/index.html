@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block page %}
+<h1>Chat logs</h1>
+<div class="container">
+    <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8">
+    	<div id="chatLogs"></div>
+    </div>
+    <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
+    	<div id="userList"></div>
+    </div>
+</div>
+<div class="container">
+    <form id="chatForm">
+        <div class="col-xs-1 col-sm-1 col-md-1 col-lg-1">
+            <p>Message:</p>
+        </div>
+        <div class="col-xs-11 col-sm-11 col-md-11 col-lg-11">
+            <input type="text" id="message" />
+            <input type="submit" class="btn btn-primary" value="Send"/>
+        </div>
+    </form>
+</div>
+<div id="usernameModal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="usernameForm">
+                <div class="modal-header">
+                    <h4 class="modal-title">Choose your username</h4>
+                </div>
+                <div class="modal-body">
+                        <p>Username: <input type="text" name="username"/></p>
+                </div>
+                <div class="modal-footer">
+                    <input class="btn btn-primary" type="submit" value="Save"/>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/chatClient.js') }}"></script>
+<script type="application/javascript">
+    $(document).ready(function() {
+        function printToChatLogs (message) {
+            $("#chatLogs").append('<p>' + message.date + ' <b>&lt;' + message.username + '&gt;</b>: ' + message.message + '</p>');
+        }
+
+        function userListHandler(data) {
+            $("#userList").empty();
+            data.message.users.sort();
+            data.message.users.forEach(function(user) {
+               $("#userList").append('<p>' + user + '</p>');
+            });
+            console.log('prout prout', data);
+        }
+
+        $("#usernameModal").modal();
+        var chat = new ChatClient();
+        chat.messageHandler = printToChatLogs;
+        chat.userListHandler = userListHandler;
+        chat.run();
+
+        $("#usernameForm").submit(function(event) {
+           event.preventDefault();
+           chat.setUsername($("#usernameForm input[name=username]").val());
+           $("#usernameModal").modal('hide');
+        });
+
+        $("#chatForm").submit(function(event) {
+            event.preventDefault();
+            chat.sendMessage($("#message").val());
+            $("#message").val('');
+        });
+    });
+</script>
+{% endblock %}
